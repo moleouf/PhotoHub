@@ -189,7 +189,7 @@ app.get('/api/photos', async (req, res) => {
 
       allPhotos.push(...photos);
     } catch (err) {
-      console.error(`Erreur compte ${idx}:`, err.message);
+      console.error(`Erreur compte ${idx}:`, JSON.stringify(err.response?.data));
       errors.push({ index: idx, error: err.message });
     }
   }
