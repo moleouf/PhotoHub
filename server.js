@@ -166,6 +166,8 @@ app.get('/api/photos', async (req, res) => {
       // Rafraîchir le token si nécessaire
       const { credentials } = await oauth2Client.refreshAccessToken();
       oauth2Client.setCredentials(credentials);
+	  
+	  console.log(`Token compte ${idx}:`, credentials.access_token ? 'OK' : 'MANQUANT');
 
       // Mettre à jour les tokens sauvegardés
       allTokens[idx].tokens = credentials;
@@ -188,10 +190,10 @@ app.get('/api/photos', async (req, res) => {
       }));
 
       allPhotos.push(...photos);
-    } catch (err) {
-      console.error(`Erreur compte ${idx}:`, JSON.stringify(err.response?.data));
-      errors.push({ index: idx, error: err.message });
-    }
+} catch (err) {
+  console.error(`Erreur compte ${idx} DETAILS:`, JSON.stringify(err.response?.data || err.response?.status || err.message));
+  errors.push({ index: idx, error: err.message });
+}
   }
 
   // Trier par date décroissante
