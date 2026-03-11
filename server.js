@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const session = require('express-session');
 const { google } = require('googleapis');
@@ -11,7 +13,6 @@ const PORT = process.env.PORT || 3000;
 // ============================================================
 // CONFIGURATION — Mettez vos identifiants Google Cloud ici
 // ============================================================
-require('dotenv').config();
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
