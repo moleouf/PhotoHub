@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhotoHub — Mes Galeries</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d0d0f;
+      --surface: #17171a;
+      --surface2: #1f1f24;
+      --border: #2a2a30;
+      --accent: #e8c97e;
+      --accent2: #c4a55a;
+      --text: #f0ede8;
+      --muted: #7a7880;
+      --danger: #e87e7e;
+      --success: #7ec99e;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -30%;
+      left: -10%;
+      width: 60%;
+      height: 60%;
+      background: radial-gradient(ellipse, rgba(232, 201, 126, 0.04) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* HEADER */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,13,15,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+    .logo span { color: var(--accent); font-style: italic; }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* LAYOUT */
+    .app {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: calc(100vh - 64px);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* SIDEBAR */
+    aside {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: sticky;
+      top: 64px;
+      height: calc(100vh - 64px);
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .sidebar-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--muted);
+      padding: 0 20px 12px;
+    }
+
+    .view-all-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      margin: 0 12px 8px;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #1a1500;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      width: calc(100% - 24px);
+      transition: all 0.2s;
+    }
+    .view-all-btn:hover { background: var(--accent2); }
+    .view-all-btn.active { box-shadow: 0 0 0 2px var(--accent); }
+
+    .account-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      margin: 0 8px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border: none;
+      background: transparent;
+      width: calc(100% - 16px);
+      color: var(--text);
+      font-family: inherit;
+      text-align: left;
+    }
+    .account-item:hover { background: var(--surface2); }
+    .account-item.active { background: var(--surface2); }
+
+    .account-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: var(--muted);
+      overflow: hidden;
+    }
+    .account-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .account-info { flex: 1; min-width: 0; }
+    .account-label { font-size: 13px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .account-email { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .account-status {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .status-connected { background: var(--success); }
+    .status-disconnected { background: var(--border); }
+
+    .connect-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: transparent;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      margin: 2px 8px;
+      width: calc(100% - 16px);
+    }
+    .connect-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .sidebar-separator {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 20px;
+    }
+
+    /* MAIN */
+    main {
+      padding: 32px;
+      position: relative;
+    }
+
+    .page-header {
+      margin-bottom: 28px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .page-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 32px;
+      line-height: 1.1;
+      letter-spacing: -0.5px;
+    }
+    .page-title span { color: var(--accent); font-style: italic; }
+    .photo-count { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    /* FILTERS */
+    .filters {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .filter-chip {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .filter-chip:hover, .filter-chip.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(232,201,126,0.06);
+    }
+
+    /* GALLERY GRID */
+    .gallery {
+      columns: 4;
+      column-gap: 8px;
+    }
+
+    @media (max-width: 1400px) { .gallery { columns: 3; } }
+    @media (max-width: 900px) { .gallery { columns: 2; } }
+
+    .photo-card {
+      break-inside: avoid;
+      margin-bottom: 8px;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      display: block;
+      background: var(--surface);
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+
+    .photo-card:hover img { transform: scale(1.03); }
+
+    .photo-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      display: flex;
+      align-items: flex-end;
+      padding: 12px;
+    }
+
+    .photo-card:hover .photo-overlay { opacity: 1; }
+
+    .photo-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .photo-meta-avatar {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: var(--border);
+    }
+    .photo-meta-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .photo-meta-text { font-size: 11px; color: rgba(255,255,255,0.85); }
+
+    /* VIDEO badge */
+    .video-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      border-radius: 4px;
+      padding: 3px 7px;
+      font-size: 10px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* LOADING */
+    .loading-grid {
+      columns: 4;
+      column-gap: 8px;
+    }
+    @media (max-width: 1400px) { .loading-grid { columns: 3; } }
+
+    .skeleton {
+      break-inside: avoid;
+      margin-bottom: 8px;
+      border-radius: 10px;
+      background: var(--surface);
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.8; }
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 40px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.4;
+    }
+
+    .empty-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 24px;
+      margin-bottom: 8px;
+      opacity: 0.7;
+    }
+
+    .empty-desc { color: var(--muted); font-size: 14px; line-height: 1.6; max-width: 360px; }
+
+    /* LIGHTBOX */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.95);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .lightbox.open { opacity: 1; pointer-events: all; }
+
+    .lightbox-img {
+      max-width: 90vw;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 4px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 20px; right: 24px;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 28px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+      line-height: 1;
+    }
+    .lightbox-close:hover { opacity: 1; }
+
+    .lightbox-info {
+      position: absolute;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 30px;
+      padding: 8px 16px;
+    }
+
+    .lightbox-avatar {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    .lightbox-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .lightbox-label { font-size: 13px; color: rgba(255,255,255,0.8); }
+    .lightbox-date { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-size: 14px;
+      z-index: 2000;
+      opacity: 0;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.success { border-color: var(--success); color: var(--success); }
+    .toast.error { border-color: var(--danger); color: var(--danger); }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Photo<span>Hub</span></div>
+  <div class="header-actions">
+    <span id="connected-count" style="font-size:13px;color:var(--muted)"></span>
+  </div>
+</header>
+
+<div class="app">
+  <aside>
+    <div class="sidebar-title">Mes Comptes</div>
+
+    <button class="view-all-btn active" id="btn-all" onclick="selectAccount('all')">
+      <span>🌐</span> Toutes les photos
+    </button>
+
+    <div class="sidebar-separator"></div>
+
+    <div id="accounts-list"></div>
+  </aside>
+
+  <main>
+    <div class="page-header">
+      <div>
+        <div class="page-title" id="page-title">Toutes mes <span>photos</span></div>
+        <div class="photo-count" id="photo-count"></div>
+      </div>
+    </div>
+
+    <div id="gallery-container">
+      <div class="empty-state">
+        <div class="empty-icon">📷</div>
+        <div class="empty-title">Connectez vos comptes</div>
+        <div class="empty-desc">Ajoutez vos comptes Google Photos dans la barre de gauche pour afficher toutes vos photos ici.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img class="lightbox-img" id="lightbox-img" src="" alt="" />
+  <div class="lightbox-info" id="lightbox-info"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let currentAccount = 'all';
+  let allAccounts = [];
+  let currentPhotos = [];
+
+  // Init
+  async function init() {
+    await loadAccounts();
+    checkURLParams();
+    if (hasConnectedAccounts()) {
+      loadPhotos(currentAccount);
+    }
+  }
+
+  function hasConnectedAccounts() {
+    return allAccounts.some(a => a.connected);
+  }
+
+  function checkURLParams() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('connected') !== null) {
+      showToast('✅ Compte connecté avec succès !', 'success');
+      window.history.replaceState({}, '', '/');
+    }
+    if (params.get('error')) {
+      showToast('❌ Erreur de connexion, réessayez.', 'error');
+      window.history.replaceState({}, '', '/');
+    }
+  }
+
+  // Charger les comptes
+  async function loadAccounts() {
+    const res = await fetch('/api/accounts');
+    allAccounts = await res.json();
+
+    const connected = allAccounts.filter(a => a.connected).length;
+    document.getElementById('connected-count').textContent =
+      connected > 0 ? `${connected}/14 comptes connectés` : '';
+
+    renderSidebar();
+  }
+
+  function renderSidebar() {
+    const container = document.getElementById('accounts-list');
+    container.innerHTML = '';
+
+    allAccounts.forEach(account => {
+      const el = document.createElement('div');
+
+      if (account.connected) {
+        el.innerHTML = `
+          <button class="account-item ${currentAccount == account.index ? 'active' : ''}"
+                  id="acc-btn-${account.index}"
+                  onclick="selectAccount(${account.index})">
+            <div class="account-avatar">
+              ${account.picture
+                ? `<img src="${account.picture}" alt="" />`
+                : account.email?.charAt(0).toUpperCase() || '?'}
+            </div>
+            <div class="account-info">
+              <div class="account-label">${account.label}</div>
+              <div class="account-email">${account.email}</div>
+            </div>
+            <div class="account-status status-connected"></div>
+          </button>`;
+      } else {
+        el.innerHTML = `
+          <button class="connect-btn" onclick="connectAccount(${account.index})">
+            <span>＋</span> ${account.label}
+          </button>`;
+      }
+
+      container.appendChild(el);
+    });
+  }
+
+  function selectAccount(idx) {
+    currentAccount = idx;
+
+    // Update sidebar
+    document.getElementById('btn-all')?.classList.toggle('active', idx === 'all');
+    allAccounts.forEach(a => {
+      const btn = document.getElementById(`acc-btn-${a.index}`);
+      if (btn) btn.classList.toggle('active', idx === a.index);
+    });
+
+    // Update title
+    const title = document.getElementById('page-title');
+    if (idx === 'all') {
+      title.innerHTML = `Toutes mes <span>photos</span>`;
+    } else {
+      const acc = allAccounts.find(a => a.index === idx);
+      title.innerHTML = `${acc?.label || 'Compte'} — <span>${acc?.email || ''}</span>`;
+    }
+
+    loadPhotos(idx);
+  }
+
+  function connectAccount(index) {
+    window.location.href = `/auth/login?account=${index}`;
+  }
+
+  // Charger les photos
+  async function loadPhotos(account) {
+    const container = document.getElementById('gallery-container');
+
+    // Show skeleton loading
+    container.innerHTML = `<div class="loading-grid">
+      ${Array.from({length: 20}, (_, i) => {
+        const heights = [180, 240, 160, 280, 200, 220];
+        const h = heights[i % heights.length];
+        return `<div class="skeleton" style="height:${h}px"></div>`;
+      }).join('')}
+    </div>`;
+
+    try {
+      const res = await fetch(`/api/photos?account=${account}`);
+      const data = await res.json();
+      currentPhotos = data.photos || [];
+
+      document.getElementById('photo-count').textContent =
+        currentPhotos.length > 0
+          ? `${currentPhotos.length} photo${currentPhotos.length > 1 ? 's' : ''}`
+          : '';
+
+      if (currentPhotos.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🔍</div>
+            <div class="empty-title">Aucune photo trouvée</div>
+            <div class="empty-desc">Ce compte ne contient pas de photos ou n'est pas encore connecté.</div>
+          </div>`;
+        return;
+      }
+
+      renderGallery(currentPhotos, container);
+
+      if (data.errors?.length > 0) {
+        showToast(`⚠️ ${data.errors.length} compte(s) inaccessibles`, 'error');
+      }
+
+    } catch (err) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">⚠️</div>
+          <div class="empty-title">Erreur de chargement</div>
+          <div class="empty-desc">Impossible de récupérer les photos. Vérifiez que le serveur est bien démarré.</div>
+        </div>`;
+    }
+  }
+
+  function renderGallery(photos, container) {
+    const gallery = document.createElement('div');
+    gallery.className = 'gallery';
+
+    photos.forEach((photo, i) => {
+      const isVideo = photo.mediaMetadata?.video;
+      const thumbUrl = photo.baseUrl + '=w400-h400';
+      const date = photo.mediaMetadata?.creationTime
+        ? new Date(photo.mediaMetadata.creationTime).toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric'})
+        : '';
+
+      const card = document.createElement('div');
+      card.className = 'photo-card';
+      card.style.animationDelay = `${i * 20}ms`;
+      card.innerHTML = `
+        <img src="${thumbUrl}" alt="" loading="lazy" />
+        ${isVideo ? '<div class="video-badge">▶ Vidéo</div>' : ''}
+        <div class="photo-overlay">
+          <div class="photo-meta">
+            <div class="photo-meta-avatar">
+              ${photo.accountPicture ? `<img src="${photo.accountPicture}" alt="" />` : ''}
+            </div>
+            <div class="photo-meta-text">${photo.accountLabel} · ${date}</div>
+          </div>
+        </div>`;
+
+      card.addEventListener('click', () => openLightbox(photo, i));
+      gallery.appendChild(card);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(gallery);
+  }
+
+  // Lightbox
+  function openLightbox(photo, index) {
+    const lb = document.getElementById('lightbox');
+    const img = document.getElementById('lightbox-img');
+    const info = document.getElementById('lightbox-info');
+
+    img.src = photo.baseUrl + '=w1600-h1200';
+    const date = photo.mediaMetadata?.creationTime
+      ? new Date(photo.mediaMetadata.creationTime).toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric'})
+      : '';
+
+    info.innerHTML = `
+      <div class="lightbox-avatar">
+        ${photo.accountPicture ? `<img src="${photo.accountPicture}" alt="" />` : ''}
+      </div>
+      <div>
+        <div class="lightbox-label">${photo.accountLabel}</div>
+        <div class="lightbox-date">${date}</div>
+      </div>`;
+
+    lb.classList.add('open');
+    document.addEventListener('keydown', handleLightboxKey);
+  }
+
+  function closeLightbox(event) {
+    if (event && event.target !== event.currentTarget && event.target.id !== 'lightbox') return;
+    document.getElementById('lightbox').classList.remove('open');
+    document.getElementById('lightbox-img').src = '';
+    document.removeEventListener('keydown', handleLightboxKey);
+  }
+
+  function handleLightboxKey(e) {
+    if (e.key === 'Escape') closeLightbox();
+  }
+
+  // Toast
+  function showToast(msg, type = '') {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = `toast ${type} show`;
+    setTimeout(() => { toast.className = 'toast'; }, 3500);
+  }
+
+  init();
+</script>
+</body>
+</html>

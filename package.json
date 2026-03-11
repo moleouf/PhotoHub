@@ -1,0 +1,16 @@
+{
+  "name": "photohub",
+  "version": "1.0.0",
+  "description": "Galerie unifiée pour 14 comptes Google Photos",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^17.3.1",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "googleapis": "^140.0.0"
+  }
+}
